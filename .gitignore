@@ -1,0 +1,19 @@
+*.exe
+*.o
+
+#vscode stuff
+*.vscode
+
+# Mac stuff
+*.app
+.DS_Store
+
+# Qt stuff
+build*
+.qtc_clangd
+.qmake.stash
+moc_*
+ui_*
+
+# audio files
+*.wav
