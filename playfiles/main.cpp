@@ -56,12 +56,13 @@ int main(int argc, char *argv[])
   std::vector<std::string> audiofilepaths;
   std::vector<AudioFileReader *> audiofilereaders;
 
-
-  // a vector of int, that correspond to the number 
-  // of elements of each of the array of double below
-  std::vector<int> samples_size;
-  // a vector of array of double
-  std::vector<double *> samples;
+  // => Déplacé en attribut de la classe CallbackData 
+  // pour pouvoir être accessible depuis la fonction callback audio !
+  // // a vector of int, that correspond to the number 
+  // // of elements of each of the array of double below
+  // std::vector<int> samples_size;
+  // // a vector of array of double
+  // std::vector<double *> samples;
 
   // minimal command-line checking
   if (argc <= 1)
@@ -87,28 +88,28 @@ int main(int argc, char *argv[])
     audiofilereaders.push_back(new AudioFileReader(audiofilepaths[fileid]));
   }
 
-  samples_size.reserve(argc - 1);
-  samples.reserve(argc - 1);
+  callbackData.samples_size.reserve(argc - 1);
+  callbackData.samples.reserve(argc - 1);
   
   // Load in memory all the samples of all the audio files
   for (unsigned long fileid = 0; fileid < audiofilepaths.size(); fileid++)
   {
     AudioFileReader *filereader = audiofilereaders[fileid];
-    samples_size.push_back(filereader->nbFrames());
+    callbackData.samples_size.push_back(filereader->nbFrames());
 
     double *buffer = new double[filereader->nbFrames()];
     // load the file content ten seconds per ten seconds
     int nbReadTotal = filereader->readAllFrames(buffer);
-    assert(nbReadTotal == samples_size[fileid]);
+    assert(nbReadTotal == callbackData.samples_size[fileid]);
     // we store the adress of the buffer into the vector of pointers to double
-    samples.push_back(buffer);
+    callbackData.samples.push_back(buffer);
   }
 
 
   std::cout << "Number of samples found in each file :" << std::endl;
   for (unsigned long fileid = 0; fileid < audiofilepaths.size(); fileid++)
   {
-    std::cout << "    * " << audiofilepaths[fileid] << " : " << samples_size[fileid] << " samples " << std::endl;
+    std::cout << "    * " << audiofilepaths[fileid] << " : " << callbackData.samples_size[fileid] << " samples " << std::endl;
   }
 
   sleep(1);
@@ -122,7 +123,13 @@ int main(int argc, char *argv[])
 
   if (dac.getDeviceCount() < 1)
   {
-    std::cout << "\nNo audio devices found!\n";
+    std::cout << "\nNo audio devices found!" << std::endl;
+    // Oups, ce exit() était oublié...
+    for (unsigned long i = 0; i < audiofilepaths.size(); i++) {
+      delete audiofilereaders[i];
+      delete [] callbackData.samples[i];
+    }
+    exit(1);
   }
 
   // Let RtAudio print messages to stderr.
@@ -148,10 +155,10 @@ int main(int argc, char *argv[])
     for (unsigned long i = 0; i < audiofilepaths.size(); i++)
     {
       delete audiofilereaders[i];
-      delete [] samples[i];
+      delete [] callbackData.samples[i];
     }
     dac.closeStream();
-    return 1;
+    exit(1);
   }
 
   if (dac.isStreamOpen() == false)
@@ -160,10 +167,10 @@ int main(int argc, char *argv[])
     for (unsigned long i = 0; i < audiofilepaths.size(); i++)
     {
       delete audiofilereaders[i];
-      delete [] samples[i];
+      delete [] callbackData.samples[i];
     }
     dac.closeStream();
-    return 1;
+    exit(1);
   }
 
   // Stream is open ... now start it.
@@ -174,9 +181,10 @@ int main(int argc, char *argv[])
     for (unsigned long i = 0; i < audiofilepaths.size(); i++)
     {
       delete audiofilereaders[i];
-      delete [] samples[i];
+      delete [] callbackData.samples[i];
     }
     dac.closeStream();
+    exit(1);
   }
 
   //  std::cout << "Stream latency = " << dac.getStreamLatency() << std::endl;
@@ -203,7 +211,7 @@ int main(int argc, char *argv[])
   for (unsigned long i = 0; i < audiofilepaths.size(); i++)
   {
       delete audiofilereaders[i];
-      delete [] samples[i];
+      delete [] callbackData.samples[i];
   }
   
   std::cout << "bye bye" <<std::endl;

@@ -22,13 +22,18 @@ int rtaudio_callback( void *outputBuffer,
 
   for ( i=0; i<nBufferFrames; i++ ) {
       for ( j=0; j<callbackData->nb_channels; j++ ) {
-          *buffer = 0;
+        *buffer = 0;
           // @ TODO write the appopriate samples into the audio stream buffer
           // to mix the callbackData->samples.size() audio files contents.
+          for(int numberOfFiles = 0; numberOfFiles < callbackData->samples_size.size(); numberOfFiles++){
+            if(callbackData->frameCounter >= callbackData->samples_size[numberOfFiles]) continue;
+            *buffer += callbackData->samples[numberOfFiles][callbackData->frameCounter]/callbackData->samples.size();
+          } 
           buffer ++;
       }
       callbackData->frameCounter ++;
     }
+
 
   return 0;
 }

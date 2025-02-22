@@ -57,6 +57,8 @@ public:
   unsigned int nb_channels = 2;
   double sample_rate = 44100;
 
+  double iterator = 0;
+
   double sine_freq[2] = {440, 880};
   double amplitude[2] = {0.8, 0.8};
 };
@@ -86,10 +88,11 @@ int rtaudio_callback(void *outputBuffer, void *inputBuffer, unsigned int nBuffer
     for (j = 0; j < callbackData->nb_channels; j++)
     {
       *buffer = 0. ; // @TODO générer l'échantillon voulu du signal sinusoidal, voie droite ou gauche
+      *buffer = callbackData->amplitude[j] * sin(2. * M_PI * callbackData->sine_freq[j] * callbackData->iterator / callbackData->sample_rate);
       buffer++;
     }
+    callbackData->iterator++;
     }
-
   return 0;
 }
 
