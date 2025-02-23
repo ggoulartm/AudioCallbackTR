@@ -16,7 +16,6 @@
 #include <signal.h>
 
 #include <vector>
-
 #include <RtAudio.h>
 
 #include "audiofilereader.h"
@@ -30,6 +29,7 @@
 #include <unistd.h>
 #define SLEEP_MS(milliseconds) usleep((unsigned long)(milliseconds * 1000.0))
 #endif
+#include <thread>
 
 // Interrupt handler function
 bool done;
@@ -90,19 +90,27 @@ int main(int argc, char *argv[])
 
   callbackData.samples_size.reserve(argc - 1);
   callbackData.samples.reserve(argc - 1);
-  
+
   // Load in memory all the samples of all the audio files
   for (unsigned long fileid = 0; fileid < audiofilepaths.size(); fileid++)
   {
     AudioFileReader *filereader = audiofilereaders[fileid];
     callbackData.samples_size.push_back(filereader->nbFrames());
 
-    double *buffer = new double[filereader->nbFrames()];
-    // load the file content ten seconds per ten seconds
-    int nbReadTotal = filereader->readAllFrames(buffer);
-    assert(nbReadTotal == callbackData.samples_size[fileid]);
-    // we store the adress of the buffer into the vector of pointers to double
-    callbackData.samples.push_back(buffer);
+    auto ReadData =  [](AudioFileReader *filereader, CallbackData *callbackData, unsigned long fileid) {
+      double *buffer = new double[filereader->nbFrames()];
+      // load the file content ten seconds per ten seconds
+      int nbReadTotal = filereader->readAllFrames(buffer);
+      assert(nbReadTotal == callbackData->samples_size[fileid]);
+      
+      // we store the adress of the buffer into the vector of pointers to double
+      for(int el = 0; el < filereader->nbFrames(); el++){
+        callbackData->queue(buffer+el, fileid);
+      }  
+    };
+    
+    std::thread t(ReadData, filereader, &callbackData, fileid);
+    t.detach();
   }
 
 
@@ -127,7 +135,6 @@ int main(int argc, char *argv[])
     // Oups, ce exit() était oublié...
     for (unsigned long i = 0; i < audiofilepaths.size(); i++) {
       delete audiofilereaders[i];
-      delete [] callbackData.samples[i];
     }
     exit(1);
   }
@@ -136,7 +143,7 @@ int main(int argc, char *argv[])
   dac.showWarnings(true);
 
   // Set our stream parameters for output only.
-  bufferFrames = 2048;
+  bufferFrames = 1024;
   RtAudio::StreamParameters oParams;
   oParams.deviceId = dac.getDefaultOutputDevice();
   oParams.nChannels = callbackData.nb_channels;
@@ -155,7 +162,6 @@ int main(int argc, char *argv[])
     for (unsigned long i = 0; i < audiofilepaths.size(); i++)
     {
       delete audiofilereaders[i];
-      delete [] callbackData.samples[i];
     }
     dac.closeStream();
     exit(1);
@@ -167,7 +173,6 @@ int main(int argc, char *argv[])
     for (unsigned long i = 0; i < audiofilepaths.size(); i++)
     {
       delete audiofilereaders[i];
-      delete [] callbackData.samples[i];
     }
     dac.closeStream();
     exit(1);
@@ -181,7 +186,6 @@ int main(int argc, char *argv[])
     for (unsigned long i = 0; i < audiofilepaths.size(); i++)
     {
       delete audiofilereaders[i];
-      delete [] callbackData.samples[i];
     }
     dac.closeStream();
     exit(1);
@@ -211,7 +215,6 @@ int main(int argc, char *argv[])
   for (unsigned long i = 0; i < audiofilepaths.size(); i++)
   {
       delete audiofilereaders[i];
-      delete [] callbackData.samples[i];
   }
   
   std::cout << "bye bye" <<std::endl;

@@ -1,4 +1,5 @@
 #include "audiocallback.h"
+#include <unistd.h>
 
 
 
@@ -25,9 +26,9 @@ int rtaudio_callback( void *outputBuffer,
         *buffer = 0;
           // @ TODO write the appopriate samples into the audio stream buffer
           // to mix the callbackData->samples.size() audio files contents.
-          for(int numberOfFiles = 0; numberOfFiles < callbackData->samples_size.size(); numberOfFiles++){
+          for(size_t numberOfFiles = 0; numberOfFiles < callbackData->samples_size.size(); numberOfFiles++){
             if(callbackData->frameCounter >= callbackData->samples_size[numberOfFiles]) continue;
-            *buffer += callbackData->samples[numberOfFiles][callbackData->frameCounter]/callbackData->samples.size();
+            *buffer += callbackData->dequeue(numberOfFiles)/callbackData->samples.size();
           } 
           buffer ++;
       }
@@ -45,4 +46,3 @@ void errorCallback( RtAudioErrorType /*type*/, const std::string &errorText )
   // This example error handling function simply outputs the error message to stderr.
   std::cerr << "\nerrorCallback: " << errorText << "\n\n";
 }
-

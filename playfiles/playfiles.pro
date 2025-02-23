@@ -9,16 +9,18 @@ CONFIG += c++11
 #QT += core gui
 #greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-# CONFIG +=debug
+CONFIG +=debug
 
 HEADERS += \
   audiofilereader.h \
-  audiocallback.h
+  audiocallback.h \
+  CallbackData.h
 
 
 SOURCES += main.cpp \
   audiofilereader.cpp \
-  audiocallback.cpp
+  audiocallback.cpp \
+  CallbackData.cpp
 
 INCLUDEPATH += ${HOME}/local/include/rtaudio
 

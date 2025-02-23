@@ -15,8 +15,8 @@ EQ            = =
 CC            = gcc
 CXX           = g++
 DEFINES       = 
-CFLAGS        = -pipe -O2 -Wall -Wextra -fPIC $(DEFINES)
-CXXFLAGS      = -g -pipe -O2 -std=gnu++11 -Wall -Wextra -fPIC $(DEFINES)
+CFLAGS        = -pipe -g -Wall -Wextra -fPIC $(DEFINES)
+CXXFLAGS      = -pipe -g -O0 -std=gnu++11 -Wall -Wextra -fPIC $(DEFINES)
 INCPATH       = -I. -I${HOME}/local/include/rtaudio -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++
 QMAKE         = /usr/lib/qt5/bin/qmake
 DEL_FILE      = rm -f
@@ -39,7 +39,7 @@ COMPRESS      = gzip -9f
 DISTNAME      = playfiles.exe1.0.0
 DISTDIR = /home/ggmuller/ISETR/TPs1et2/TP_Seance1_2_v03/playfiles/.tmp/playfiles.exe1.0.0
 LINK          = g++
-LFLAGS        = -Wl,-O1
+LFLAGS        = 
 LIBS          = $(SUBLIBS) -L${HOME}/local/lib -lrtaudio -lsndfile   
 AR            = ar cqs
 RANLIB        = 
@@ -54,10 +54,12 @@ OBJECTS_DIR   = ./
 
 SOURCES       = main.cpp \
 		audiofilereader.cpp \
-		audiocallback.cpp 
+		audiocallback.cpp \
+		CallbackData.cpp 
 OBJECTS       = main.o \
 		audiofilereader.o \
-		audiocallback.o
+		audiocallback.o \
+		CallbackData.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/linux.conf \
@@ -128,9 +130,11 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/yacc.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf \
 		playfiles.pro audiofilereader.h \
-		audiocallback.h main.cpp \
+		audiocallback.h \
+		CallbackData.h main.cpp \
 		audiofilereader.cpp \
-		audiocallback.cpp
+		audiocallback.cpp \
+		CallbackData.cpp
 QMAKE_TARGET  = playfiles.exe
 DESTDIR       = 
 TARGET        = playfiles.exe
@@ -327,14 +331,19 @@ compiler_clean:
 ####### Compile
 
 main.o: main.cpp audiofilereader.h \
-		audiocallback.h
+		audiocallback.h \
+		CallbackData.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 audiofilereader.o: audiofilereader.cpp audiofilereader.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o audiofilereader.o audiofilereader.cpp
 
-audiocallback.o: audiocallback.cpp audiocallback.h
+audiocallback.o: audiocallback.cpp audiocallback.h \
+		CallbackData.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o audiocallback.o audiocallback.cpp
+
+CallbackData.o: CallbackData.cpp CallbackData.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o CallbackData.o CallbackData.cpp
 
 ####### Install
 
