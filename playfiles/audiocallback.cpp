@@ -28,7 +28,9 @@ int rtaudio_callback( void *outputBuffer,
           // to mix the callbackData->samples.size() audio files contents.
           for(size_t numberOfFiles = 0; numberOfFiles < callbackData->samples_size.size(); numberOfFiles++){
             if(callbackData->frameCounter >= callbackData->samples_size[numberOfFiles]) continue;
-            *buffer += callbackData->dequeue(numberOfFiles)/callbackData->samples.size();
+            double sample = callbackData->dequeue(numberOfFiles);
+            if(sample == NULL) sample = 0;
+            *buffer += sample/callbackData->samples.size();
           } 
           buffer ++;
       }

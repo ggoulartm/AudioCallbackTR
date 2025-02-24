@@ -25,12 +25,18 @@ void CallbackData::queue(double* e, size_t i){
 }
   
 double CallbackData::dequeue(size_t i){
-  double e = *samples[i].front();
+  while(samples[i].empty()){
+    usleep(10000);
+  }
+  double* e = samples[i].front();
   samples[i].pop_front();
   if(samples[i].size() == 0){
     samples[i] = std::deque<double*>();
   }
-  return e;
+  if(e == NULL){
+    return NULL;
+  }
+  return *e;
 }
 
 bool CallbackData::isEmpty(size_t i){
